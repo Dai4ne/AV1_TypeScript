@@ -23,7 +23,7 @@ O comando `npm test` compila o TypeScript e executa a jornada automatizada. Os t
 | Enviar equipamento para desmontagem antes da triagem | A operação é recusada com mensagem explicando que a triagem precisa ser concluída. |
 | Piorar o estado físico em duas ou mais categorias sem justificativa | A operação é recusada; com justificativa, é aceita. |
 | Auditor tentar alterar dados | A CLI informa falta de permissão e não executa a alteração. |
-| Configuração de imposto/depreciação | O administrador salva e consulta os valores; o auditor não pode alterá-los; o relatório calcula a estimativa conforme a alíquota configurada. |
+| Configuração de imposto/depreciação | O administrador salva e consulta os valores; o auditor não pode alterá-los. O relatório apresenta a soma dos valores mensais dos contratos, sem aplicar alíquota ou depreciação, pois o enunciado não define fórmulas para esses cálculos. |
 | Journal antigo ou acima de 10 MB | Registros com mais de 180 dias são removidos e o journal ativo é rotacionado ao exceder o limite. |
 | Conteúdo cifrado com etiqueta de integridade alterada | A decifragem falha, em vez de entregar dados adulterados. |
 | Falha simulada ao gravar uma entidade após registrar a transação | A entidade não é salva, e a entrada anterior permanece no journal para análise. |
