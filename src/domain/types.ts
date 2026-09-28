@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
+import type { RepositorioArquivo } from "../infrastructure/repository";
 
-/** Enumeracoes e classes do modelo, alinhadas aos elementos do UML. */
+/* Enumeracoes e classes do modelo, de acordo com os elementos do UML. */
 export enum PapelUsuario { ADMINISTRADOR = "ADMINISTRADOR", OPERADOR_CADASTRO = "OPERADOR_CADASTRO", GESTOR_ALMOXARIFADO = "GESTOR_ALMOXARIFADO", AUDITOR = "AUDITOR" }
 
 export enum StatusLote { RECEBIDO = "RECEBIDO", EM_TRIAGEM = "EM_TRIAGEM", TRIAGEM_CONCLUIDA = "TRIAGEM_CONCLUIDA", ENCAMINHADO = "ENCAMINHADO", FINALIZADO = "FINALIZADO" }
@@ -39,7 +40,11 @@ export class Movimentacao {
 }
 export class Equipamento {
   constructor(public id: string, public codigoBarrasInterno: string, public tipo: TipoEquipamento, public marca: string, public modelo: string, public anoFabricacao: number, public estadoFisico: EstadoFisico, public pesoQuilogramas: number, public loteId: string, public posicaoNoLote: number, public statusRastreamento: StatusRastreamento, public historicoMovimentacao: Movimentacao[] = []) {}
-  atualizarStatus(novoStatus: StatusRastreamento, justificativa: string): void { this.statusRastreamento = novoStatus; }
+  atualizarStatus(novoStatus: StatusRastreamento, justificativa: string, responsavel = "sistema"): void {
+    const origem = this.statusRastreamento;
+    this.statusRastreamento = novoStatus;
+    this.historicoMovimentacao.push(new Movimentacao(crypto.randomUUID(), this.id, new Date(), origem, novoStatus, responsavel, justificativa));
+  }
   registrarMovimentacao(destino: string, responsavel: string): void { this.historicoMovimentacao.push(new Movimentacao(crypto.randomUUID(), this.id, new Date(), this.statusRastreamento, destino, responsavel, "")); }
   calcularDepreciacao(): number { return Math.max(0, new Date().getFullYear() - this.anoFabricacao); }
 }
@@ -52,8 +57,8 @@ export class Lote {
 }
 export class JournalTransacao {
   constructor(public id: string, public timestamp: Date, public operacao: string, public entidade: string, public dadosAntes: unknown, public dadosDepois: unknown, public usuarioResponsavel: string) {}
-  registrar(): void { /* Persistencia realizada pelo servico Journal. */ }
-  reverter(): boolean { return false; }
+  registrar(): void { Object.freeze(this); }
+  async reverter(repositorio: RepositorioArquivo): Promise<boolean> { return repositorio.reverterTransacao(this.id); }
 }
 export abstract class Validador {
   abstract validar(objeto: unknown): boolean;

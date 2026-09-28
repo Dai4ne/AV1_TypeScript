@@ -25,4 +25,4 @@ O modelo segue os nomes e as responsabilidades apresentados no diagrama.
 
 ## Em andamento
 
-Esta correspondência descreve a estrutura já criada, não significa que todas as operações estão prontas. Falta completar o provisionamento do administrador, persistir credenciais e sessões, fazer o journal gravar e reverter transações, implementar todos os comandos da CLI e gerar os relatórios finais. O fluxo de desmontagem também deve ser protegido por uma verificação explícita de triagem concluída.
+O provisionamento inicial, o armazenamento cifrado, o registro e a reversão de transações, a retenção/rotação do journal e os comandos principais estão implementados. A CLI aplica permissões por papel, renova a sessão após cada comando autorizado e guarda o histórico cifrado. Ainda falta concluir a configuração de parâmetros globais citada no enunciado, expandir os relatórios e documentar cenários adicionais de falha. O script `npm test` cobre a jornada inicial e as principais regras de negócio.
