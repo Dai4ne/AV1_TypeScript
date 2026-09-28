@@ -23,8 +23,10 @@ test("valida CNPJ e impede lote com data fora dos últimos 90 dias", () => {
   const hoje = new Date(2026, 8, 28);
   const recente = new Date(hoje); recente.setDate(recente.getDate() - 90);
   const antigo = new Date(hoje); antigo.setDate(antigo.getDate() - 91);
+  const futuro = new Date(hoje); futuro.setDate(futuro.getDate() + 1);
   assert.equal(dataEntradaValida(recente, hoje), true);
   assert.equal(dataEntradaValida(antigo, hoje), false);
+  assert.equal(dataEntradaValida(futuro, hoje), false);
 });
 
 test("percorre cadastro, lote, triagem, rastreabilidade, journal e reversão", async () => {
@@ -54,6 +56,12 @@ test("percorre cadastro, lote, triagem, rastreabilidade, journal e reversão", a
     razaoSocial: "Duplicada", cnpj: "11.222.333/0001-81", inscricaoEstadual: "ISENTO",
     enderecoCompleto: "Rua", telefone: "1", email: "duplicada@example.com",
   }), /Ja existe organizacao/);
+
+  await relatorios.configurarParametrosGlobais(10, 20);
+  assert.deepEqual(await relatorios.consultarParametrosGlobais(), { aliquotaImposto: 10, coeficienteDepreciacao: 20 });
+  assert.match(await relatorios.gerarRelatorioFinanceiro({ inicio: new Date(0), fim: new Date("2030-01-01") }), /Imposto estimado \(10%\): R\$ 250\.00/);
+  await assert.rejects(() => relatorios.configurarParametrosGlobais(101, 20), /entre 0 e 100%/);
+  await assert.rejects(() => relatorios.configurarParametrosGlobais(10, -1), /igual ou maior que zero/);
 
   const lote = await lotes.criarLote({ id: "LT001", organizacaoId: "BR001", notaFiscal: "123456", transportadora: "TransRapida", dataEntrada: new Date(), observacoes: "" });
   const equipamento = new Equipamento("EQ001", "NOTEBOOK-00000001", TipoEquipamento.NOTEBOOK, "Marca", "Modelo", 2022, EstadoFisico.BOM_ESTADO, 2.5, lote.id, 0, StatusRastreamento.AGUARDANDO_TRIAGEM);

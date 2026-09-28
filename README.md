@@ -26,9 +26,16 @@ equipamento criar --lote <id-do-lote> --tipo NOTEBOOK --marca Marca --modelo Mod
 lote triagem <id-do-lote>
 equipamento status <id-do-equipamento> EM_DESMONTAGEM
 historico <id-do-equipamento>
+parametros configurar --imposto 10 --depreciacao 20
+parametros consultar
+relatorio financeiro
 ```
 
 O administrador gerencia contas; o operador de cadastro gerencia organizações e contratos; o gestor de almoxarifado gerencia lotes e equipamentos; o auditor consulta relatórios e rastreabilidade. O histórico de comandos também é salvo cifrado.
+
+Somente o administrador pode configurar os parâmetros globais. A alíquota é informada em porcentagem e aparece como estimativa de imposto sobre a soma mensal dos contratos ativos no relatório financeiro. O coeficiente de depreciação é guardado e exibido como número. O enunciado não define como calcular depreciação em dinheiro nem informa o valor de aquisição dos equipamentos, então o sistema não inventa esse cálculo.
+
+A arquitetura de segurança e os cenários de falha cobertos estão descritos em [SEGURANCA.md](SEGURANCA.md).
 
 ## Organização do código
 
@@ -44,6 +51,6 @@ O administrador gerencia contas; o operador de cadastro gerencia organizações 
 1. Modelo UML, regras iniciais e estrutura TypeScript.
 2. Persistência cifrada, journal, provisionamento e autenticação inicial.
 3. Comandos principais, permissões, histórico e testes de jornada.
-4. Completar parâmetros globais de imposto/depreciação e a documentação final de segurança e falhas.
+4. Parâmetros globais de imposto/depreciação e documentação de segurança/falhas.
 
 Os arquivos de dados são locais e contêm informações protegidas. Não os compartilhe nem os envie ao controle de versão.

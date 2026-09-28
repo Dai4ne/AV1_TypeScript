@@ -65,6 +65,8 @@ test("jornada CLI: primeiro administrador, papéis, lote e rastreabilidade", asy
     await esperar("greencode> ");
 
     await login("admin", "SenhaTeste123");
+    await enviar("parametros configurar --imposto 10 --depreciacao 20", "parâmetros globais configurados");
+    await enviar("parametros consultar", "Alíquota de imposto: 10%");
     await criarUsuario("cadastro", "OPERADOR_CADASTRO");
     await criarUsuario("estoque", "GESTOR_ALMOXARIFADO");
     await criarUsuario("auditoria", "AUDITOR");
@@ -87,6 +89,8 @@ test("jornada CLI: primeiro administrador, papéis, lote e rastreabilidade", asy
 
     await login("auditoria", "SenhaTeste123");
     await enviar("relatorio status PECAS_REAPROVEITADAS", "1 equipamento(s)");
+    await enviar("relatorio financeiro", "Imposto estimado (10%): R$ 250.00");
+    await enviar("parametros configurar --imposto 5 --depreciacao 10", "não tem permissão");
     await enviar("equipamento status EQ001 EM_TRIAGEM", "não tem permissão");
     entrada.stdin.write("sair\n");
     await new Promise((resolver, rejeitar) => {

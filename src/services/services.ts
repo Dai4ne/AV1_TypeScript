@@ -114,6 +114,21 @@ export class ServicoEquipamento {
 
 export class ServicoRelatorio {
   constructor(private organizacoes: ServicoOrganizacao, private lotes: ServicoLote, private equipamentos: ServicoEquipamento) {}
+
+  async consultarParametrosGlobais(): Promise<{ aliquotaImposto: number; coeficienteDepreciacao: number } | null> {
+    return this.organizacoes.repositorio.carregarEntidade("configuracoes", "globais");
+  }
+
+  async configurarParametrosGlobais(aliquotaImposto: number, coeficienteDepreciacao: number): Promise<void> {
+    if (!Number.isFinite(aliquotaImposto) || aliquotaImposto < 0 || aliquotaImposto > 100) {
+      throw new Error("A alíquota de imposto deve estar entre 0 e 100%.");
+    }
+    if (!Number.isFinite(coeficienteDepreciacao) || coeficienteDepreciacao < 0) {
+      throw new Error("O coeficiente de depreciação deve ser um número igual ou maior que zero.");
+    }
+    await this.organizacoes.repositorio.salvarEntidade("configuracoes", "globais", { aliquotaImposto, coeficienteDepreciacao });
+  }
+
   async gerarRelatorioPorOrganizacao(organizacaoId: string, periodo: { inicio: Date; fim: Date }): Promise<string> {
     const org = await this.organizacoes.buscarOrganizacao(organizacaoId); if (!org) throw new Error("Organizacao nao encontrada.");
     const lotes = await this.lotes.consultarLotePorPeriodo(periodo.inicio, periodo.fim).then(ls => ls.filter(l => l.organizacaoId === organizacaoId));
@@ -124,7 +139,12 @@ export class ServicoRelatorio {
     const organizacoes = await this.organizacoes.listarOrganizacoesAtivas();
     const contratos = organizacoes.map(o => o.contratoVigente).filter((c): c is Contrato => Boolean(c && c.dataAssinatura <= periodo.fim && c.dataVencimento >= periodo.inicio));
     const valorMensal = contratos.reduce((soma, contrato) => soma + contrato.valorMensal, 0);
-    return `Contratos ativos no periodo: ${contratos.length}. Soma dos valores mensais: R$ ${valorMensal.toFixed(2)}.`;
+    const parametros = await this.consultarParametrosGlobais();
+    if (!parametros) {
+      return `Contratos ativos no periodo: ${contratos.length}. Soma dos valores mensais: R$ ${valorMensal.toFixed(2)}. Parâmetros globais ainda não configurados.`;
+    }
+    const impostoMensal = valorMensal * parametros.aliquotaImposto / 100;
+    return `Contratos ativos no periodo: ${contratos.length}. Soma dos valores mensais: R$ ${valorMensal.toFixed(2)}. Imposto estimado (${parametros.aliquotaImposto}%): R$ ${impostoMensal.toFixed(2)}. Coeficiente de depreciação configurado: ${parametros.coeficienteDepreciacao}.`;
   }
 }
 

@@ -70,7 +70,7 @@ export class CLIInterface {
 
   exibirMenuPorPapel(papel: PapelUsuario): void {
     const opcoes: Record<PapelUsuario, string[]> = {
-      [PapelUsuario.ADMINISTRADOR]: ["usuario", "organizacao", "lote", "equipamento", "relatorio", "historico"],
+      [PapelUsuario.ADMINISTRADOR]: ["usuario", "parametros", "organizacao", "lote", "equipamento", "relatorio", "historico"],
       [PapelUsuario.OPERADOR_CADASTRO]: ["organizacao", "relatorio"],
       [PapelUsuario.GESTOR_ALMOXARIFADO]: ["lote", "equipamento", "relatorio", "historico"],
       [PapelUsuario.AUDITOR]: ["relatorio", "historico"],
@@ -85,6 +85,7 @@ export class CLIInterface {
       "organizacao criar", "organizacao listar", "organizacao renovar-contrato", "organizacao desativar",
       "lote criar", "lote listar", "lote triagem",
       "equipamento criar", "equipamento rastrear", "equipamento estado", "equipamento status",
+      "parametros consultar", "parametros configurar",
       "relatorio organizacao", "relatorio status", "relatorio financeiro", "historico",
     ];
     const trecho = linha.trimStart();
@@ -143,6 +144,7 @@ export class CLIInterface {
     if (grupo === "lote") return this.executarLote(acao, argumentos);
     if (grupo === "equipamento") return this.executarEquipamento(acao, argumentos);
     if (grupo === "relatorio") return this.executarRelatorio(acao, argumentos);
+    if (grupo === "parametros") return this.executarParametros(acao, argumentos);
     if (grupo === "usuario") return this.executarUsuario(acao, argumentos);
     if (grupo === "historico") return this.exibirHistoricoEquipamento(acao, argumentos);
     console.log("AVISO: comando não reconhecido. Digite ajuda.");
@@ -307,6 +309,27 @@ export class CLIInterface {
     throw new Error("Use relatorio organizacao, status ou financeiro.");
   }
 
+  private async executarParametros(acao: string | undefined, argumentos: string[]): Promise<void> {
+    if (acao === "consultar") {
+      const parametros = await this.relatorio.consultarParametrosGlobais();
+      if (!parametros) {
+        console.log("Parâmetros globais ainda não configurados. Use parametros configurar --imposto <0-100> --depreciacao <coeficiente>.");
+        return;
+      }
+      console.log(`Alíquota de imposto: ${parametros.aliquotaImposto}%. Coeficiente de depreciação: ${parametros.coeficienteDepreciacao}.`);
+      return;
+    }
+    if (acao === "configurar") {
+      const opcoes = lerOpcoes(argumentos);
+      const aliquota = lerNumero(exigir(opcoes, "imposto"), "alíquota de imposto");
+      const depreciacao = lerNumero(exigir(opcoes, "depreciacao"), "coeficiente de depreciação");
+      await this.relatorio.configurarParametrosGlobais(aliquota, depreciacao);
+      console.log("OK: parâmetros globais configurados.");
+      return;
+    }
+    throw new Error("Use parametros consultar ou parametros configurar --imposto <0-100> --depreciacao <coeficiente>.");
+  }
+
   private async exibirHistoricoEquipamento(id: string | undefined, _argumentos: string[]): Promise<void> {
     if (!id) throw new Error("Uso: historico <id-do-equipamento>.");
     const item = await this.equipamento.rastrearEquipamento(id);
@@ -338,6 +361,12 @@ function lerOpcoes(argumentos: string[]): Record<string, string> {
 function exigir(opcoes: Record<string, string>, nome: string): string {
   const valor = opcoes[nome]?.trim();
   if (!valor) throw new Error(`Falta informar --${nome}.`);
+  return valor;
+}
+
+function lerNumero(texto: string, nome: string): number {
+  const valor = Number(texto.replace(",", "."));
+  if (!Number.isFinite(valor)) throw new Error(`Informe um número válido para ${nome}.`);
   return valor;
 }
 
