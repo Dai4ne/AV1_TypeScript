@@ -139,12 +139,7 @@ export class ServicoRelatorio {
     const organizacoes = await this.organizacoes.listarOrganizacoesAtivas();
     const contratos = organizacoes.map(o => o.contratoVigente).filter((c): c is Contrato => Boolean(c && c.dataAssinatura <= periodo.fim && c.dataVencimento >= periodo.inicio));
     const valorMensal = contratos.reduce((soma, contrato) => soma + contrato.valorMensal, 0);
-    const parametros = await this.consultarParametrosGlobais();
-    if (!parametros) {
-      return `Contratos ativos no periodo: ${contratos.length}. Soma dos valores mensais: R$ ${valorMensal.toFixed(2)}. Parâmetros globais ainda não configurados.`;
-    }
-    const impostoMensal = valorMensal * parametros.aliquotaImposto / 100;
-    return `Contratos ativos no periodo: ${contratos.length}. Soma dos valores mensais: R$ ${valorMensal.toFixed(2)}. Imposto estimado (${parametros.aliquotaImposto}%): R$ ${impostoMensal.toFixed(2)}. Coeficiente de depreciação configurado: ${parametros.coeficienteDepreciacao}.`;
+    return `Contratos ativos no periodo: ${contratos.length}. Soma dos valores mensais: R$ ${valorMensal.toFixed(2)}.`;
   }
 }
 

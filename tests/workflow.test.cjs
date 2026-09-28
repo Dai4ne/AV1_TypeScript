@@ -29,6 +29,33 @@ test("valida CNPJ e impede lote com data fora dos últimos 90 dias", () => {
   assert.equal(dataEntradaValida(futuro, hoje), false);
 });
 
+test("detecta quando um arquivo cifrado foi alterado", () => {
+  const criptografia = new CriptografiaArquivo();
+  const chave = criptografia.gerarChave();
+  const partes = criptografia.cifrar("conteúdo protegido", chave).split(":");
+  partes[1] = `${partes[1][0] === "0" ? "1" : "0"}${partes[1].slice(1)}`;
+  assert.throws(() => criptografia.decifrar(partes.join(":"), chave));
+});
+
+test("registra a transação no journal antes de uma gravação que falha", async () => {
+  const pasta = await mkdtemp(join(tmpdir(), "greencode-falha-gravacao-"));
+  pastasTemporarias.push(pasta);
+  const criptografia = new CriptografiaArquivo();
+  const chave = criptografia.gerarChave();
+  const repositorio = new RepositorioArquivo(pasta, criptografia, chave);
+  const gravarOriginal = repositorio.gravarColecao.bind(repositorio);
+  repositorio.gravarColecao = async (colecao, dados) => {
+    if (colecao === "itens") throw new Error("falha simulada ao salvar os dados");
+    return gravarOriginal(colecao, dados);
+  };
+
+  await assert.rejects(() => repositorio.salvarEntidade("itens", "ITEM001", { nome: "Teste" }), /falha simulada/);
+  repositorio.gravarColecao = gravarOriginal;
+  assert.equal(await repositorio.carregarEntidade("itens", "ITEM001"), null);
+  const registrosJournal = JSON.parse(criptografia.decifrar(await readFile(join(pasta, "journal.enc"), "utf8"), chave));
+  assert.ok(registrosJournal.some(item => item.entidade === "itens:ITEM001" && item.operacao === "CRIAR"));
+});
+
 test("percorre cadastro, lote, triagem, rastreabilidade, journal e reversão", async () => {
   const pasta = await mkdtemp(join(tmpdir(), "greencode-jornada-"));
   pastasTemporarias.push(pasta);
@@ -59,7 +86,7 @@ test("percorre cadastro, lote, triagem, rastreabilidade, journal e reversão", a
 
   await relatorios.configurarParametrosGlobais(10, 20);
   assert.deepEqual(await relatorios.consultarParametrosGlobais(), { aliquotaImposto: 10, coeficienteDepreciacao: 20 });
-  assert.match(await relatorios.gerarRelatorioFinanceiro({ inicio: new Date(0), fim: new Date("2030-01-01") }), /Imposto estimado \(10%\): R\$ 250\.00/);
+  assert.match(await relatorios.gerarRelatorioFinanceiro({ inicio: new Date(0), fim: new Date("2030-01-01") }), /Soma dos valores mensais: R\$ 2500\.00/);
   await assert.rejects(() => relatorios.configurarParametrosGlobais(101, 20), /entre 0 e 100%/);
   await assert.rejects(() => relatorios.configurarParametrosGlobais(10, -1), /igual ou maior que zero/);
 
@@ -102,6 +129,15 @@ test("remove journals com mais de 180 dias e rotaciona o arquivo ao passar de 10
   await repositorio.salvarEntidade("itens", "pequeno", { nome: "primeiro" });
   assert.equal((await readdir(pasta)).some(nome => nome === "journal-antigo.enc"), false);
   await repositorio.salvarEntidade("itens", "grande", { texto: "x".repeat(10 * 1024 * 1024) });
+
+  const journalDepoisDoGrande = JSON.parse(criptografia.decifrar(await readFile(join(pasta, "journal.enc"), "utf8"), chave));
+  assert.equal(journalDepoisDoGrande.length, 0, "uma transação acima do limite deve ser arquivada imediatamente");
+  const arquivosAposGrande = await readdir(pasta);
+  const journalsAposGrande = await Promise.all(arquivosAposGrande
+    .filter(nome => /^journal-.*\.enc$/.test(nome))
+    .map(async nome => JSON.parse(criptografia.decifrar(await readFile(join(pasta, nome), "utf8"), chave))));
+  assert.ok(journalsAposGrande.some(registros => registros.some(item => item.entidade === "itens:grande")));
+
   await repositorio.salvarEntidade("itens", "final", { nome: "último" });
 
   const arquivos = await readdir(pasta);

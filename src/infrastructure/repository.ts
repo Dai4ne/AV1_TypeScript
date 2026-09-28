@@ -99,10 +99,20 @@ export class RepositorioArquivo {
     const novosRegistros = [...registrosAtuais, transacao];
     const cifrado = this.criptografia.cifrar(JSON.stringify(novosRegistros), this.chave);
 
-    if (Buffer.byteLength(cifrado, "utf8") > TAMANHO_MAXIMO_JOURNAL && registrosAtuais.length > 0) {
-      const arquivoRotacionado = await this.proximoArquivoRotacionado();
-      await rename(arquivoAtivo, arquivoRotacionado);
+    if (Buffer.byteLength(cifrado, "utf8") > TAMANHO_MAXIMO_JOURNAL) {
+      if (registrosAtuais.length > 0) {
+        const arquivoRotacionado = await this.proximoArquivoRotacionado();
+        await rename(arquivoAtivo, arquivoRotacionado);
+      }
       await this.gravarColecao("journal", [transacao]);
+
+      // Uma transacao isolada tambem pode passar de 10 MB; arquiva-a imediatamente.
+      const transacaoSozinha = this.criptografia.cifrar(JSON.stringify([transacao]), this.chave);
+      if (Buffer.byteLength(transacaoSozinha, "utf8") > TAMANHO_MAXIMO_JOURNAL) {
+        const arquivoRotacionado = await this.proximoArquivoRotacionado();
+        await rename(arquivoAtivo, arquivoRotacionado);
+        await this.gravarColecao("journal", []);
+      }
       return;
     }
     await this.gravarColecao("journal", novosRegistros);

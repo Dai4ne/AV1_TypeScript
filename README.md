@@ -33,7 +33,7 @@ relatorio financeiro
 
 O administrador gerencia contas; o operador de cadastro gerencia organizações e contratos; o gestor de almoxarifado gerencia lotes e equipamentos; o auditor consulta relatórios e rastreabilidade. O histórico de comandos também é salvo cifrado.
 
-Somente o administrador pode configurar os parâmetros globais. A alíquota é informada em porcentagem e aparece como estimativa de imposto sobre a soma mensal dos contratos ativos no relatório financeiro. O coeficiente de depreciação é guardado e exibido como número. O enunciado não define como calcular depreciação em dinheiro nem informa o valor de aquisição dos equipamentos, então o sistema não inventa esse cálculo.
+Somente o administrador pode configurar os parâmetros globais. A alíquota é informada em porcentagem e o coeficiente de depreciação é guardado como número. O enunciado pede a configuração desses valores, mas não especifica fórmulas para aplicá-los; por isso, o relatório financeiro não calcula imposto ou depreciação.
 
 A arquitetura de segurança e os cenários de falha cobertos estão descritos em [SEGURANCA.md](SEGURANCA.md).
 

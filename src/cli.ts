@@ -210,24 +210,22 @@ export class CLIInterface {
     if (acao === "papel") {
       const usuario = argumentos[0]; const nomePapel = argumentos[1];
       if (!usuario || !nomePapel) throw new Error("Uso: usuario papel <usuario> <PAPEL>.");
-      if (usuario === this.sessaoAtual?.usuario) throw new Error("Use outra conta para alterar o próprio papel.");
       const credencial = this.autenticacao.credenciais.find(item => item.usuario === usuario);
       if (!credencial) throw new Error("Usuário não encontrado.");
       credencial.papel = enumValor(PapelUsuario, nomePapel, "papel de usuário");
       await this.organizacao.repositorio.salvarEntidade("credenciais", usuario, credencial);
       this.autenticacao.sessoesAtivas = this.autenticacao.sessoesAtivas.filter(sessao => sessao.usuario !== usuario);
+      if (usuario === this.sessaoAtual?.usuario) this.fazerLogout();
       console.log("OK: papel atualizado."); return;
     }
     if (acao === "desativar") {
       const usuario = argumentos[0]; if (!usuario) throw new Error("Uso: usuario desativar <usuario>.");
-      if (usuario === this.sessaoAtual?.usuario) throw new Error("Encerre a sessão ou use outra conta para desativar este usuário.");
       const credencial = this.autenticacao.credenciais.find(item => item.usuario === usuario);
       if (!credencial) throw new Error("Usuário não encontrado.");
-      const administradores = this.autenticacao.credenciais.filter(item => item.papel === PapelUsuario.ADMINISTRADOR);
-      if (credencial.papel === PapelUsuario.ADMINISTRADOR && administradores.length === 1) throw new Error("Não é permitido desativar o último administrador.");
       await this.organizacao.repositorio.excluirEntidade("credenciais", usuario);
       this.autenticacao.credenciais = this.autenticacao.credenciais.filter(item => item.usuario !== usuario);
       this.autenticacao.sessoesAtivas = this.autenticacao.sessoesAtivas.filter(sessao => sessao.usuario !== usuario);
+      if (usuario === this.sessaoAtual?.usuario) this.fazerLogout();
       console.log(`OK: usuário ${usuario} desativado.`); return;
     }
     throw new Error("Use usuario criar, listar, papel ou desativar.");

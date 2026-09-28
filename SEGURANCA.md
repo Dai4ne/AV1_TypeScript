@@ -25,12 +25,14 @@ O comando `npm test` compila o TypeScript e executa a jornada automatizada. Os t
 | Auditor tentar alterar dados | A CLI informa falta de permissão e não executa a alteração. |
 | Configuração de imposto/depreciação | O administrador salva e consulta os valores; o auditor não pode alterá-los; o relatório calcula a estimativa conforme a alíquota configurada. |
 | Journal antigo ou acima de 10 MB | Registros com mais de 180 dias são removidos e o journal ativo é rotacionado ao exceder o limite. |
+| Conteúdo cifrado com etiqueta de integridade alterada | A decifragem falha, em vez de entregar dados adulterados. |
+| Falha simulada ao gravar uma entidade após registrar a transação | A entidade não é salva, e a entrada anterior permanece no journal para análise. |
 | Arquivos de credenciais e journal | O conteúdo salvo não revela a senha nem o texto legível das transações. |
 
 ## Cenários não simulados
 
-Os testes não desligam o processo no meio de uma gravação, não alteram manualmente os arquivos cifrados para simular corrupção e não executam a jornada em uma instalação Ubuntu. A gravação temporária seguida de renomeação reduz o risco de arquivo parcialmente escrito, e o AES-GCM rejeita conteúdo adulterado ao decifrar, mas esses casos ainda precisam de testes próprios. O teste automatizado foi executado neste ambiente Windows; compatibilidade com Ubuntu deve ser confirmada executando `npm install` e `npm test` nesse sistema.
+Os testes não desligam o processo no meio de uma gravação nem alteram um arquivo persistido no disco para simular corrupção. O teste de integridade altera uma etiqueta cifrada em memória e confirma que a decifragem falha. A gravação temporária seguida de renomeação reduz o risco de arquivo parcialmente escrito, mas uma queda real de energia ainda não foi simulada. A jornada automatizada foi executada neste ambiente Windows; compatibilidade com Ubuntu ainda precisa ser confirmada executando `npm install` e `npm test` nessa plataforma.
 
 ## Limites da atividade
 
-O enunciado pede um coeficiente global de depreciação, mas não fornece uma fórmula nem o valor de aquisição dos equipamentos. O sistema guarda e apresenta o coeficiente, sem inventar um valor de depreciação em dinheiro. A alíquota aparece como estimativa sobre a soma mensal dos contratos ativos no período consultado; isso é uma regra operacional simples, não uma apuração fiscal.
+O enunciado pede configurar alíquota de imposto e coeficiente de depreciação, mas não fornece fórmulas para aplicá-los. O sistema guarda e apresenta os parâmetros, sem inventar cálculos tributários ou de depreciação.

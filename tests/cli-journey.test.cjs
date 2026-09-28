@@ -89,9 +89,12 @@ test("jornada CLI: primeiro administrador, papéis, lote e rastreabilidade", asy
 
     await login("auditoria", "SenhaTeste123");
     await enviar("relatorio status PECAS_REAPROVEITADAS", "1 equipamento(s)");
-    await enviar("relatorio financeiro", "Imposto estimado (10%): R$ 250.00");
+    await enviar("relatorio financeiro", "Soma dos valores mensais: R$ 2500.00");
     await enviar("parametros configurar --imposto 5 --depreciacao 10", "não tem permissão");
     await enviar("equipamento status EQ001 EM_TRIAGEM", "não tem permissão");
+    await enviar("logout", "sessão encerrada");
+    await login("admin", "SenhaTeste123");
+    await enviar("usuario papel admin OPERADOR_CADASTRO", "papel atualizado");
     entrada.stdin.write("sair\n");
     await new Promise((resolver, rejeitar) => {
       const timer = setTimeout(() => rejeitar(new Error(`CLI não encerrou. Saída: ${saida}`)), 5000);
