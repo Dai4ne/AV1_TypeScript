@@ -1,10 +1,14 @@
 {
   "compilerOptions": {
+    // Versão de JavaScript emitida pelo compilador.
     "target": "ES2022",
+    // Usa os módulos e as regras de resolução do Node.js moderno.
     "module": "Node16",
     "moduleResolution": "Node16",
+    // Lê os fontes de src e grava o JavaScript compilado em dist.
     "rootDir": "src",
     "outDir": "dist",
+    // Mostra erros de tipo e permite importar as definições do Node.js.
     "strict": true,
     "types": ["node"],
     "esModuleInterop": true,

@@ -1,5 +1,5 @@
 # Segurança e cenários de falha
-
+##### Como o Greencode protege e guarda os dados?
 Este documento descreve o que o greencode implementa e o que foi verificado pelos testes automatizados. Ele não afirma que cenários ainda não simulados já foram testados.
 
 ## Proteção dos dados
@@ -31,7 +31,7 @@ O comando `npm test` compila o TypeScript e executa a jornada automatizada. Os t
 
 ## Cenários não simulados
 
-Os testes não desligam o processo no meio de uma gravação nem alteram um arquivo persistido no disco para simular corrupção. O teste de integridade altera uma etiqueta cifrada em memória e confirma que a decifragem falha. A gravação temporária seguida de renomeação reduz o risco de arquivo parcialmente escrito, mas uma queda real de energia ainda não foi simulada. A jornada automatizada foi executada neste ambiente Windows; compatibilidade com Ubuntu ainda precisa ser confirmada executando `npm install` e `npm test` nessa plataforma.
+Os testes não desligam o processo no meio de uma gravação nem alteram um arquivo persistido no disco para simular corrupção. O teste de integridade altera uma etiqueta cifrada em memória e confirma que a decifragem falha. A gravação temporária seguida de renomeação reduz o risco de arquivo parcialmente escrito, mas uma queda real de energia ainda não foi simulada. A jornada automatizada foi executada no Windows e, conforme informado durante a atividade, também passou no Ubuntu 24.04.
 
 ## Limites da atividade
 

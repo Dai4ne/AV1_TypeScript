@@ -1,12 +1,21 @@
 import { Validador } from "./types";
 import { cnpjValido, dataEntradaValida } from "./validation";
 
+// Adaptadores das regras do domínio para a interface comum Validador
 export class ValidadorCNPJ extends Validador {
-  validar(cnpj: unknown): boolean { return typeof cnpj === "string" && cnpjValido(cnpj); }
-  obterMensagemErro(): string { return "CNPJ invalido ou com digitos verificadores incorretos."; }
+    validar(cnpj: unknown): boolean {
+        return typeof cnpj === "string" && cnpjValido(cnpj);
+    }
+    obterMensagemErro(): string {
+        return "CNPJ invalido ou com digitos verificadores incorretos.";
+    }
 }
 
 export class ValidadorDataEntrada extends Validador {
-  validar(data: unknown): boolean { return data instanceof Date && dataEntradaValida(data); }
-  obterMensagemErro(): string { return "A data do lote deve estar entre hoje e os ultimos 90 dias."; }
+    validar(data: unknown): boolean {
+        return data instanceof Date && dataEntradaValida(data);
+    }
+    obterMensagemErro(): string {
+        return "A data do lote deve estar entre hoje e os ultimos 90 dias.";
+    }
 }

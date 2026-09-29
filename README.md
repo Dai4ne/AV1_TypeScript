@@ -122,6 +122,13 @@ npm test
 
 O comando compila o TypeScript e executa os testes automatizados da jornada, das permissões e das principais regras de negócio.
 
+## Comandos do projeto
+
+- `npm run dev`: inicia a aplicação usando os arquivos TypeScript.
+- `npm run build`: compila os arquivos TypeScript para a pasta `dist`.
+- `npm start`: inicia a versão compilada que está em `dist`.
+- `npm test`: compila e executa os testes automatizados.
+
 ## Dados e segurança
 
 Os dados ficam na pasta `data` e são cifrados. Não compartilhe essa pasta: ela contém a configuração necessária para acessar os arquivos protegidos. As senhas não são armazenadas em texto puro.
